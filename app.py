@@ -1,5 +1,4 @@
 from flask import Flask, render_template, request
-from fractions import Fraction
 import math
 
 app = Flask(__name__)
@@ -8,36 +7,43 @@ app = Flask(__name__)
 def calculator():
     result = None
     if request.method == 'POST':
+        operation = request.form.get('operation')
+        num1 = request.form.get('num1', '').strip()
+        num2 = request.form.get('num2', '').strip()
+
         try:
-            num1 = float(request.form['num1'])
-            num2 = float(request.form['num2'])
-            operation = request.form['operation']
-
-            if operation == 'add':
-                result = num1 + num2
-            elif operation == 'sub':
-                result = num1 - num2
-            elif operation == 'mul':
-                result = num1 * num2
-            elif operation == 'div':
-                result = num1 / num2 if num2 != 0 else 'Undefined (division by zero)'
-            elif operation == 'square':
-                result = num1 ** 2
-            elif operation == 'squareroot':
-                result = math.sqrt(num1)
-            elif operation == 'cube':
-                result = num1 ** 3
-            elif operation == 'cuberoot':
-                result = num1 ** (1/3)
-            elif operation == 'rational':
-                result = str(Fraction(num1).limit_denominator())  # example: 0.75 -> '3/4'
-            elif operation == 'decimal':
-                result = f"{num1:.4f}"  # adjust number of decimals here
-
+            # Only convert when needed
+            if operation in ['square', 'sqrt', 'cube', 'cbrt']:
+                number = float(num1)
+                if operation == 'square':
+                    result = number ** 2
+                elif operation == 'sqrt':
+                    result = math.sqrt(number)
+                elif operation == 'cube':
+                    result = number ** 3
+                elif operation == 'cbrt':
+                    result = number ** (1/3)
+            else:
+                number1 = float(num1)
+                number2 = float(num2)
+                if operation == 'add':
+                    result = number1 + number2
+                elif operation == 'sub':
+                    result = number1 - number2
+                elif operation == 'mul':
+                    result = number1 * number2
+                elif operation == 'div':
+                    if number2 != 0:
+                        result = number1 / number2
+                    else:
+                        result = "Error: Division by zero"
+                elif operation == 'rational':
+                    # Example: Return ratio
+                    result = f"{number1} / {number2}"
         except Exception as e:
             result = f"Error: {str(e)}"
 
-    return render_template('index.html', result=result)
+    return render_template("index.html", result=result)
 
 if __name__ == '__main__':
     app.run(debug=True)
